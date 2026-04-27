@@ -7,8 +7,9 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 只保留一个变量，彻底简化！
+# 用你这个知识库应用的配置
 API_KEY = os.getenv("DASHSCOPE_API_KEY")
+APP_ID = "69ef035f09b67baf6090e429"  # 你的知识库应用ID
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
@@ -25,26 +26,22 @@ async def chat(request: Request):
         "Content-Type": "application/json"
     }
 
+    # 调用你的知识库应用，而不是直接调用模型
     payload = {
-        "model": "qwen-turbo",
-        "input": {
-            "messages": [
-                {"role": "system", "content": "你是家护家电智能客服，只回答家电相关的问题，回答要简短清晰。"},
-                {"role": "user", "content": user_msg}
-            ]
-        }
+        "app_id": APP_ID,
+        "prompt": user_msg
     }
 
     try:
         response = requests.post(
-            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            "https://dashscope.aliyuncs.com/api/v1/apps/completion",
             headers=headers,
             json=payload,
             timeout=10
         )
         response.raise_for_status()
         res_json = response.json()
-        reply = res_json["output"]["choices"][0]["message"]["content"]
+        reply = res_json["output"]["text"]
     except Exception as e:
         print("错误详情：", str(e))
         reply = "客服暂时无法响应，请稍后再试"
