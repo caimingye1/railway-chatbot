@@ -6,22 +6,18 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
-
-# 挂载静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 读取百炼配置
 BAILIAN_API_KEY = os.getenv("BAILIAN_API_KEY")
 BAILIAN_APP_ID = os.getenv("BAILIAN_APP_ID")
 BAILIAN_URL = "https://dashscope.aliyuncs.com/api/v1/apps/completion"
 
-# 前端页面（读取 static/index.html）
 @app.get("/", response_class=HTMLResponse)
 async def index():
     with open("static/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
-# 后端对接百炼知识库
+# ↓↓↓ 就是这里，换成我给你的这段 ↓↓↓
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
@@ -41,9 +37,12 @@ async def chat(request: Request):
 
     try:
         response = requests.post(BAILIAN_URL, headers=headers, json=payload)
+        print("状态码：", response.status_code)
+        print("返回内容：", response.text)
         res_json = response.json()
         reply = res_json["output"]["text"]
-    except:
-        reply = "服务暂时不可用"
+    except Exception as e:
+        reply = f"错误：{str(e)}"
+        print("异常信息：", e)
 
     return {"reply": reply}
