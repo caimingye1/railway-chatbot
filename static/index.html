@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>星河科技智能客服</title>
+    <title>家护家电智能客服</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,12 +60,12 @@
     </style>
 </head>
 <body>
-    <h1>星河科技智能客服</h1>
+    <h1>🏠 家护家电智能客服</h1>
     <div id="chat-container">
-        <div class="message bot-message">您好，我是星河科技智能客服。请问有什么可以帮您？</div>
+        <div class="message bot-message">您好！我是家护家电智能客服，很高兴为您服务！</div>
     </div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="请输入您的问题，例如：如何申请发票？">
+        <input type="text" id="user-input" placeholder="请输入您的问题，例如：洗衣机怎么用？">
         <button onclick="sendMessage()">发送</button>
     </div>
 
@@ -75,48 +75,38 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // 显示用户消息
             const chatContainer = document.getElementById('chat-container');
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-message';
             userDiv.textContent = message;
             chatContainer.appendChild(userDiv);
 
-            // 清空输入框
             input.value = '';
 
             try {
-                // 调用后端接口
                 const response = await fetch('/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: message })
                 });
                 const data = await response.json();
 
-                // 显示机器人回复
                 const botDiv = document.createElement('div');
                 botDiv.className = 'message bot-message';
                 botDiv.textContent = data.reply;
                 chatContainer.appendChild(botDiv);
 
-                // 滚动到底部
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             } catch (error) {
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message';
-                errorDiv.textContent = '抱歉，服务器出错了，请稍后再试。';
+                errorDiv.textContent = '抱歉，服务暂时不可用';
                 chatContainer.appendChild(errorDiv);
             }
         }
 
-        // 按回车发送消息
         document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+            if (e.key === 'Enter') sendMessage();
         });
     </script>
 </body>
