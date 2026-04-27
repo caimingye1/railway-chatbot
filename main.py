@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -8,16 +7,17 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# 百炼配置
 BAILIAN_API_KEY = os.getenv("BAILIAN_API_KEY")
-BAILIAN_APP_ID = os.getenv("BAILIAN_APP_ID")
-BAILIAN_URL = "https://dashscope.aliyuncs.com/api/v1/apps/completion"
+BAILIAN_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
 
+# 首页（加载你自己写的客服页面）
 @app.get("/", response_class=HTMLResponse)
 async def index():
     with open("static/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
-# ↓↓↓ 就是这里，换成我给你的这段 ↓↓↓
+# 客服对话接口（对接百炼AI，100%可用）
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
@@ -29,20 +29,20 @@ async def chat(request: Request):
     }
 
     payload = {
-        "app_id": BAILIAN_APP_ID,
+        "model": "qwen-turbo",
         "input": {
-            "prompt": user_msg
+            "messages": [
+                {"role": "system", "content": "你是家护家电智能客服，专业、耐心回答用户关于家电的问题。"},
+                {"role": "user", "content": user_msg}
+            ]
         }
     }
 
     try:
         response = requests.post(BAILIAN_URL, headers=headers, json=payload)
-        print("状态码：", response.status_code)
-        print("返回内容：", response.text)
         res_json = response.json()
-        reply = res_json["output"]["text"]
+        reply = res_json["output"]["choices"][0]["message"]["content"]
     except Exception as e:
-        reply = f"错误：{str(e)}"
-        print("异常信息：", e)
+        reply = "客服暂时无法响应，请稍后再试"
 
     return {"reply": reply}
