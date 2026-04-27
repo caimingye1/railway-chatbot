@@ -3,61 +3,23 @@ import json
 import requests
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+
+# 挂载静态文件
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 读取百炼配置
 BAILIAN_API_KEY = os.getenv("BAILIAN_API_KEY")
 BAILIAN_APP_ID = os.getenv("BAILIAN_APP_ID")
 BAILIAN_URL = "https://dashscope.aliyuncs.com/api/v1/apps/completion"
 
-# 前端页面
+# 前端页面（读取 static/index.html）
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    html = """
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>家电智能客服</title>
-    <style>
-        body{max-width:600px;margin:20px auto;font-family:Arial}
-        .chat-box{border:1px solid #ddd;padding:15px;height:400px;overflow-y:auto;margin-bottom:10px;border-radius:8px}
-        .msg{margin:8px 0;padding:8px 12px;border-radius:10px}
-        .user{background:#007bff;color:white;text-align:right}
-        .bot{background:#f1f1f1;color:#333}
-        input{width:75%;padding:10px;border-radius:8px;border:1px solid #ddd}
-        button{width:20%;padding:10px;background:#007bff;color:white;border:none;border-radius:8px}
-    </style>
-</head>
-<body>
-    <h2>🏠 家护家电智能客服</h2>
-    <div class="chat-box" id="chat"></div>
-    <input id="input" placeholder="输入问题..." />
-    <button onclick="send()">发送</button>
-
-    <script>
-        async function send() {
-            let msg = document.getElementById("input").value.trim();
-            if(!msg) return;
-            let chat = document.getElementById("chat");
-            chat.innerHTML += `<div class='msg user'>${msg}</div>`;
-            document.getElementById("input").value = "";
-
-            let res = await fetch("/chat", {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({message:msg})
-            });
-            let data = await res.json();
-            chat.innerHTML += `<div class='msg bot'>${data.reply}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-        }
-    </script>
-</body>
-</html>
-    """
-    return html
+    with open("static/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 # 后端对接百炼知识库
 @app.post("/chat")
